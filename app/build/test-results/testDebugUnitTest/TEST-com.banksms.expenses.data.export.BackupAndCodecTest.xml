@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.banksms.expenses.data.export.BackupAndCodecTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-27T07:55:51" hostname="Abhineets-MacBook-Air.local" time="0.295">
+  <properties/>
+  <testcase name="csvExporterEscapesCommasAndQuotesProperly" classname="com.banksms.expenses.data.export.BackupAndCodecTest" time="0.005"/>
+  <testcase name="encryptedBackupRoundTripSucceedsWithCorrectPasswordAndFailsWithWrongPassword" classname="com.banksms.expenses.data.export.BackupAndCodecTest" time="0.288"/>
+  <testcase name="rulesJsonRoundTripPreservesAllRuleTypes" classname="com.banksms.expenses.data.export.BackupAndCodecTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

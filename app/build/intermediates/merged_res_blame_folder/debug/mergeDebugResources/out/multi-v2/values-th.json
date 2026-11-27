@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.banksms.expenses.app-mergeDebugResources-2:/values-th/values-th.xml",
+            "outputFile": "com.banksms.expenses.app-mergeDebugResources-51:/values-th/values-th.xml",
             "map": [
                 {
                     "source": "/Users/abhineetmishra/.gradle/caches/8.10.2/transforms/7e27525562ff7edb1b978a985973c606/transformed/ui-release/res/values-th/values-th.xml",

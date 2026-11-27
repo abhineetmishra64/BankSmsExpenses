@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.banksms.expenses.data.repository.ExpenseRepositoryTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-27T07:55:53" hostname="Abhineets-MacBook-Air.local" time="0.206">
+  <properties/>
+  <testcase name="persistsSettingsAndRestoresEncryptedBackupIntoFreshRepository" classname="com.banksms.expenses.data.repository.ExpenseRepositoryTest" time="0.155"/>
+  <testcase name="recategoriseMerchantCreatesRuleDeletingRuleKeepsTransactionsAndReprocessRespectsManualOverride" classname="com.banksms.expenses.data.repository.ExpenseRepositoryTest" time="0.032"/>
+  <testcase name="templateBuilderAndReprocessConvertsUnparsedSmsIntoTransaction" classname="com.banksms.expenses.data.repository.ExpenseRepositoryTest" time="0.008"/>
+  <testcase name="exclusionRuleAppliesRetroactivelyToFutureSmsAndResetRestoresAll" classname="com.banksms.expenses.data.repository.ExpenseRepositoryTest" time="0.005"/>
+  <testcase name="ingestsSmsAutoCreatesAccountsDeduplicatesByRefNoAndFlagsAutoTransfers" classname="com.banksms.expenses.data.repository.ExpenseRepositoryTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

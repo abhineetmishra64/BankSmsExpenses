@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-27T07:55:52" hostname="Abhineets-MacBook-Air.local" time="0.004">
+  <properties/>
+  <testcase name="userAliasAssignsCanonicalNameAndDefaultCategory" classname="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" time="0.0"/>
+  <testcase name="manualOverrideWinsOverUserRulesAndBuiltin" classname="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" time="0.002"/>
+  <testcase name="userRulesAreEvaluatedInPriorityOrderAndWinOverAliasesAndBuiltin" classname="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" time="0.001"/>
+  <testcase name="fallsBackToUncategorisedWhenNoRuleOrKeywordMatches" classname="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" time="0.0"/>
+  <testcase name="autoTransferDetectorFlagsSelfTransfersAndCardBillPaymentsWithinWindow" classname="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" time="0.0"/>
+  <testcase name="findsBuiltinExclusionSuggestionsAndRespectsDismissals" classname="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" time="0.0"/>
+  <testcase name="exclusionRulesRespectManualOverrideAndMatchAmountTolerance" classname="com.banksms.expenses.data.sms.CategorisationAndExclusionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

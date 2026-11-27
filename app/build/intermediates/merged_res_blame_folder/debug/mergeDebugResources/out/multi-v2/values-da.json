@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.banksms.expenses.app-mergeDebugResources-2:/values-da/values-da.xml",
+            "outputFile": "com.banksms.expenses.app-mergeDebugResources-51:/values-da/values-da.xml",
             "map": [
                 {
                     "source": "/Users/abhineetmishra/.gradle/caches/8.10.2/transforms/a083cfc65ff471fda52197da1767e2d6/transformed/material3-release/res/values-da/values-da.xml",

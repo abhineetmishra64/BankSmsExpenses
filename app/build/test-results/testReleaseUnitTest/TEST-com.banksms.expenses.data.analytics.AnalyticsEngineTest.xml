@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.banksms.expenses.data.analytics.AnalyticsEngineTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-27T07:55:53" hostname="Abhineets-MacBook-Air.local" time="0.045">
+  <properties/>
+  <testcase name="customMonthStartDayResolvesBillingPeriodCorrectly" classname="com.banksms.expenses.data.analytics.AnalyticsEngineTest" time="0.017"/>
+  <testcase name="homeSummaryExcludesExcludedItemsAndMaintainsAccountConsistency" classname="com.banksms.expenses.data.analytics.AnalyticsEngineTest" time="0.024"/>
+  <testcase name="detectsMonthlyRecurringSubscriptions" classname="com.banksms.expenses.data.analytics.AnalyticsEngineTest" time="0.002"/>
+  <testcase name="computesTrendsAndInsightsAcrossMonths" classname="com.banksms.expenses.data.analytics.AnalyticsEngineTest" time="0.001"/>
+  <testcase name="splitsAndBudgetsComputeAccurately" classname="com.banksms.expenses.data.analytics.AnalyticsEngineTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

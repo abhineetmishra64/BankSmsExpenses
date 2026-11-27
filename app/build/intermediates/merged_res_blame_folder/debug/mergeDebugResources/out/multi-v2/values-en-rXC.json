@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.banksms.expenses.app-mergeDebugResources-2:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.banksms.expenses.app-mergeDebugResources-51:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
                     "source": "/Users/abhineetmishra/.gradle/caches/8.10.2/transforms/3d23b9c644b825846cd920602b9f8533/transformed/foundation-release/res/values-en-rXC/values-en-rXC.xml",

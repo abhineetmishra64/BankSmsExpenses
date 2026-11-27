@@ -1,40 +1,36 @@
 package com.banksms.expenses.ui
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.automirrored.rounded.ListAlt
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Inbox
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.Sms
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -48,41 +44,75 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.banksms.expenses.data.model.ExpenseCategory
+import com.banksms.expenses.R
+import com.banksms.expenses.data.model.CategoryRuleEntity
+import com.banksms.expenses.data.model.ExclusionReason
+import com.banksms.expenses.data.model.SmsRawEntity
 import com.banksms.expenses.data.model.TransactionEntity
-import com.banksms.expenses.ui.components.AllBanksHeroCard
-import com.banksms.expenses.ui.components.CategoryBreakdownCard
-import com.banksms.expenses.ui.components.PerBankSection
+import com.banksms.expenses.ui.components.CategoryRuleEditorDialog
+import com.banksms.expenses.ui.components.ExclusionRuleEditorDialog
+import com.banksms.expenses.ui.components.ManualTransactionDialog
+import com.banksms.expenses.ui.components.PinLockScreen
+import com.banksms.expenses.ui.components.TemplateBuilderDialog
 import com.banksms.expenses.ui.components.TransactionDetailSheet
-import com.banksms.expenses.ui.components.TransactionRow
+import com.banksms.expenses.ui.screens.AccountsScreen
+import com.banksms.expenses.ui.screens.BackupAndSettingsScreen
+import com.banksms.expenses.ui.screens.BudgetsScreen
+import com.banksms.expenses.ui.screens.CategoriesAndRulesScreen
+import com.banksms.expenses.ui.screens.ExclusionsScreen
+import com.banksms.expenses.ui.screens.HomeScreen
+import com.banksms.expenses.ui.screens.MoreMenuScreen
+import com.banksms.expenses.ui.screens.RecurringScreen
+import com.banksms.expenses.ui.screens.ReviewScreen
+import com.banksms.expenses.ui.screens.TransactionsScreen
+import com.banksms.expenses.ui.screens.TrendsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     uiState: ExpensesUiState,
+    viewModel: ExpensesViewModel,
     hasSmsPermission: Boolean,
     onRequestSmsPermission: () -> Unit,
-    onSyncSms: () -> Unit,
-    onLoadSampleData: () -> Unit,
-    onSelectBank: (String?) -> Unit,
-    onSelectTimeframe: (TimeframeFilter) -> Unit,
-    onSelectTypeFilter: (TypeFilter) -> Unit,
-    onSearchQueryChange: (String) -> Unit,
-    onUpdateCategory: (Long, ExpenseCategory) -> Unit,
-    onDeleteTransaction: (Long) -> Unit,
-    onClearAll: () -> Unit,
-    onDismissStatusMessage: () -> Unit
+    onExportCsv: () -> Unit,
+    onExportRulesJson: () -> Unit,
+    onImportRulesJson: () -> Unit,
+    onExportEncryptedBackup: (String) -> Unit,
+    onImportEncryptedBackup: (String) -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    var selectedTransaction by remember { mutableStateOf<TransactionEntity?>(null) }
+    var selectedTxnId by remember { mutableStateOf<Long?>(null) }
+    var showManualDialog by remember { mutableStateOf(false) }
+    var editingCategoryRule by remember { mutableStateOf<Triple<CategoryRuleEntity?, String?, Long?>?>(null) }
+    var editingExclusionRule by remember { mutableStateOf<Triple<String, String, ExclusionReason>?>(null) }
+    var templateBuilderSms by remember { mutableStateOf<SmsRawEntity?>(null) }
     var showOverflowMenu by remember { mutableStateOf(false) }
+    var isPinUnlocked by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.statusMessage) {
         val message = uiState.statusMessage ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        onDismissStatusMessage()
+        viewModel.clearStatusMessage()
+    }
+
+    if (uiState.preferences.pinHash != null && !isPinUnlocked) {
+        Scaffold { inner ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
+            ) {
+                PinLockScreen(
+                    onVerifyPin = viewModel::verifyPin,
+                    onUnlocked = { isPinUnlocked = true }
+                )
+            }
+        }
+        return
     }
 
     Scaffold(
@@ -91,19 +121,45 @@ fun MainScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "Bank SMS Expenses",
-                            fontWeight = FontWeight.Bold
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.app_logo),
+                            contentDescription = "App logo",
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(9.dp))
                         )
-                        Text(
-                            text = uiState.selectedBank ?: "All Banks Combined",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "SMS Expense Tracker",
+                                fontWeight = FontWeight.Bold
+                            )
+                            val subtitle = when {
+                                uiState.currentTab == MainTab.MORE && uiState.moreSubScreen != null -> uiState.moreSubScreen.title
+                                uiState.preferences.selectedAccountIds.isEmpty() -> "All Accounts • Offline"
+                                else -> "${uiState.preferences.selectedAccountIds.size} account(s) selected"
+                            }
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 },
                 actions = {
+                    IconButton(onClick = viewModel::togglePrivacyMode) {
+                        Icon(
+                            imageVector = if (uiState.preferences.privacyMode) {
+                                Icons.Rounded.VisibilityOff
+                            } else {
+                                Icons.Rounded.Visibility
+                            },
+                            contentDescription = "Toggle privacy mode"
+                        )
+                    }
+
                     if (uiState.isSyncing) {
                         CircularProgressIndicator(
                             modifier = Modifier
@@ -113,12 +169,9 @@ fun MainScreen(
                         )
                     } else {
                         IconButton(onClick = {
-                            if (hasSmsPermission) onSyncSms() else onRequestSmsPermission()
+                            if (hasSmsPermission) viewModel.syncSmsInbox() else onRequestSmsPermission()
                         }) {
-                            Icon(
-                                imageVector = Icons.Rounded.Refresh,
-                                contentDescription = "Sync SMS"
-                            )
+                            Icon(Icons.Rounded.Refresh, contentDescription = "Sync SMS")
                         }
                     }
 
@@ -131,281 +184,292 @@ fun MainScreen(
                             onDismissRequest = { showOverflowMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Load sample bank SMS") },
+                                text = { Text("Add manual transaction") },
                                 onClick = {
                                     showOverflowMenu = false
-                                    onLoadSampleData()
+                                    showManualDialog = true
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Clear all transactions") },
+                                text = { Text("Re-process all stored SMS") },
                                 onClick = {
                                     showOverflowMenu = false
-                                    onClearAll()
+                                    viewModel.reprocessAllSms()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Load sample bank SMS") },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    viewModel.loadSampleData()
                                 }
                             )
                         }
                     }
                 }
             )
+        },
+        bottomBar = {
+            NavigationBar {
+                MainTab.entries.forEach { tab ->
+                    val icon = when (tab) {
+                        MainTab.HOME -> Icons.Rounded.Home
+                        MainTab.TRENDS -> Icons.AutoMirrored.Rounded.ShowChart
+                        MainTab.TRANSACTIONS -> Icons.AutoMirrored.Rounded.ListAlt
+                        MainTab.REVIEW -> Icons.Rounded.Inbox
+                        MainTab.MORE -> Icons.Rounded.Menu
+                    }
+                    NavigationBarItem(
+                        selected = uiState.currentTab == tab,
+                        onClick = { viewModel.selectTab(tab) },
+                        icon = {
+                            if (tab == MainTab.REVIEW && uiState.needsAttentionCount > 0) {
+                                BadgedBox(badge = { Badge { Text("${uiState.needsAttentionCount}") } }) {
+                                    Icon(icon, contentDescription = tab.label)
+                                }
+                            } else {
+                                Icon(icon, contentDescription = tab.label)
+                            }
+                        },
+                        label = { Text(tab.label, maxLines = 1) }
+                    )
+                }
+            }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(innerPadding)
         ) {
-            if (!hasSmsPermission) {
-                item {
-                    SmsPermissionBanner(
-                        onGrantPermission = onRequestSmsPermission,
-                        onLoadSampleData = onLoadSampleData
-                    )
-                }
-            }
-
-            item {
-                AllBanksHeroCard(
-                    summary = uiState.allBanksSummary,
-                    bankCount = uiState.perBankSummaries.size,
-                    isSelected = uiState.selectedBank == null,
-                    timeframeLabel = uiState.timeframe.label,
-                    onClick = { onSelectBank(null) }
+            when (uiState.currentTab) {
+                MainTab.HOME -> HomeScreen(
+                    uiState = uiState,
+                    hasSmsPermission = hasSmsPermission,
+                    onRequestSmsPermission = onRequestSmsPermission,
+                    onSelectBackfillMonths = viewModel::setBackfillMonths,
+                    onSyncSms = viewModel::syncSmsInbox,
+                    onLoadSampleData = viewModel::loadSampleData,
+                    onPrevMonth = viewModel::previousMonth,
+                    onNextMonth = viewModel::nextMonth,
+                    onToggleAccount = viewModel::toggleAccountFilter,
+                    onOpenExclusions = viewModel::openExclusionsForCurrentMonth,
+                    onOpenCategoryTransactions = viewModel::openTransactionsForCategory,
+                    onOpenAllTransactions = { viewModel.selectTab(MainTab.TRANSACTIONS) },
+                    onOpenReview = { viewModel.selectTab(MainTab.REVIEW) },
+                    onSelectTransaction = { selectedTxnId = it.id }
                 )
-            }
 
-            if (uiState.perBankSummaries.isNotEmpty()) {
-                item {
-                    PerBankSection(
-                        banks = uiState.perBankSummaries,
-                        selectedBank = uiState.selectedBank,
-                        onSelectBank = onSelectBank
-                    )
-                }
-            }
-
-            item {
-                FilterControlsSection(
-                    timeframe = uiState.timeframe,
-                    typeFilter = uiState.typeFilter,
-                    searchQuery = uiState.searchQuery,
-                    onSelectTimeframe = onSelectTimeframe,
-                    onSelectTypeFilter = onSelectTypeFilter,
-                    onSearchQueryChange = onSearchQueryChange
+                MainTab.TRENDS -> TrendsScreen(
+                    uiState = uiState,
+                    onToggleAccount = viewModel::toggleAccountFilter,
+                    onSelectRange = viewModel::setTrendRange,
+                    onSelectCategoryFilter = viewModel::setTrendCategoryFilter,
+                    onToggleNetLine = viewModel::toggleNetSavingsLine,
+                    onToggleStacked = viewModel::toggleStackedCategories,
+                    onToggleTable = viewModel::toggleTrendTable,
+                    onSelectPeriod = viewModel::selectTrendPeriod,
+                    onOpenMonthOnHome = viewModel::openMonthOnHome
                 )
-            }
 
-            if (uiState.categoryBreakdown.isNotEmpty()) {
-                item {
-                    val activeSummary = uiState.perBankSummaries
-                        .firstOrNull { it.bankName == uiState.selectedBank }
-                        ?: uiState.allBanksSummary
+                MainTab.TRANSACTIONS -> TransactionsScreen(
+                    uiState = uiState,
+                    onSearchChange = viewModel::updateTxnSearchQuery,
+                    onSelectDirection = viewModel::setTxnDirectionFilter,
+                    onSelectCategory = viewModel::setTxnCategoryFilter,
+                    onSelectExclusionFilter = viewModel::setTxnExclusionFilter,
+                    onToggleUncategorisedOnly = viewModel::toggleTxnUncategorisedOnly,
+                    onToggleMonthScoped = viewModel::toggleTxnMonthScoped,
+                    onAmountRangeChange = viewModel::setTxnAmountRange,
+                    onClearFilters = viewModel::clearTransactionFilters,
+                    onToggleAccount = viewModel::toggleAccountFilter,
+                    onSelectTransaction = { selectedTxnId = it.id },
+                    onAddManualClick = { showManualDialog = true }
+                )
 
-                    CategoryBreakdownCard(
-                        scopeTitle = activeSummary.bankName,
-                        currency = activeSummary.primaryCurrency,
-                        items = uiState.categoryBreakdown
+                MainTab.REVIEW -> ReviewScreen(
+                    uiState = uiState,
+                    onCategoriseGroup = viewModel::categoriseMerchantGroup,
+                    onOpenTemplateBuilder = { sms -> templateBuilderSms = sms },
+                    onIgnoreSender = { sender -> viewModel.setSenderRule(sender, "IGNORE") },
+                    onAcceptSuggestion = viewModel::acceptExclusionSuggestion,
+                    onDismissSuggestion = viewModel::dismissExclusionSuggestion
+                )
+
+                MainTab.MORE -> when (uiState.moreSubScreen) {
+                    null -> MoreMenuScreen(
+                        uiState = uiState,
+                        onOpenSubScreen = viewModel::openMoreSubScreen
                     )
-                }
-            }
 
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${uiState.selectedBank ?: "All Banks"} · ${uiState.visibleTransactions.size} items",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                    MoreSubScreen.EXCLUSIONS -> ExclusionsScreen(
+                        uiState = uiState,
+                        onBack = { viewModel.openMoreSubScreen(null) },
+                        onIncludeAgain = viewModel::includeTransactionsAgain,
+                        onBulkExclude = viewModel::bulkExcludeByQuery,
+                        onToggleRule = viewModel::toggleExclusionRule,
+                        onResetRule = viewModel::resetExclusionRule,
+                        onOpenNewRule = { editingExclusionRule = Triple("", "", ExclusionReason.OTHER) },
+                        onAcceptSuggestion = viewModel::acceptExclusionSuggestion,
+                        onDismissSuggestion = viewModel::dismissExclusionSuggestion
                     )
-                }
-            }
 
-            if (uiState.visibleTransactions.isEmpty()) {
-                item {
-                    EmptyTransactionsCard(
-                        hasStoredTransactions = uiState.totalStoredTransactions > 0,
-                        hasSmsPermission = hasSmsPermission,
-                        onSyncSms = onSyncSms,
-                        onRequestPermission = onRequestSmsPermission,
-                        onLoadSampleData = onLoadSampleData
+                    MoreSubScreen.CATEGORIES_RULES -> CategoriesAndRulesScreen(
+                        uiState = uiState,
+                        onBack = { viewModel.openMoreSubScreen(null) },
+                        onOpenNewCategoryRule = { editingCategoryRule = Triple(null, null, null) },
+                        onEditCategoryRule = { rule -> editingCategoryRule = Triple(rule, null, null) },
+                        onToggleCategoryRule = viewModel::toggleCategoryRule,
+                        onMoveCategoryRule = viewModel::moveCategoryRule,
+                        onDeleteCategoryRule = viewModel::deleteCategoryRule,
+                        onTestRuleSms = viewModel::testRulesOnSampleSms,
+                        onAddCategory = viewModel::addCategory,
+                        onRenameCategory = viewModel::renameCategory,
+                        onMergeCategory = viewModel::mergeCategories,
+                        onDeleteCategory = viewModel::deleteCategory,
+                        onAddAlias = viewModel::addAlias,
+                        onDeleteAlias = viewModel::deleteAlias,
+                        onExportRulesJson = onExportRulesJson,
+                        onImportRulesJson = onImportRulesJson
                     )
-                }
-            } else {
-                items(
-                    items = uiState.visibleTransactions,
-                    key = { it.id }
-                ) { tx ->
-                    TransactionRow(
-                        transaction = tx,
-                        onClick = { selectedTransaction = tx }
+
+                    MoreSubScreen.ACCOUNTS -> AccountsScreen(
+                        uiState = uiState,
+                        onBack = { viewModel.openMoreSubScreen(null) },
+                        onRenameAccount = viewModel::renameAccount,
+                        onUpdateAccountType = viewModel::updateAccountType,
+                        onToggleActive = viewModel::toggleAccountActive,
+                        onMergeAccounts = viewModel::mergeAccounts
+                    )
+
+                    MoreSubScreen.BUDGETS -> BudgetsScreen(
+                        uiState = uiState,
+                        onBack = { viewModel.openMoreSubScreen(null) },
+                        onUpsertBudget = viewModel::upsertBudget,
+                        onDeleteBudget = viewModel::deleteBudget
+                    )
+
+                    MoreSubScreen.RECURRING -> RecurringScreen(
+                        uiState = uiState,
+                        onBack = { viewModel.openMoreSubScreen(null) }
+                    )
+
+                    MoreSubScreen.BACKUP_SETTINGS -> BackupAndSettingsScreen(
+                        uiState = uiState,
+                        onBack = { viewModel.openMoreSubScreen(null) },
+                        onReprocessAllSms = viewModel::reprocessAllSms,
+                        onLoadSampleData = viewModel::loadSampleData,
+                        onClearAll = viewModel::clearAllTransactions,
+                        onExportCsv = onExportCsv,
+                        onExportBackup = onExportEncryptedBackup,
+                        onImportBackup = onImportEncryptedBackup,
+                        onSetMonthStartDay = viewModel::setMonthStartDay,
+                        onSetFinancialYear = viewModel::setFinancialYearMode,
+                        onSetAutoTransferWindow = viewModel::setAutoTransferWindowMinutes,
+                        onTogglePrivacyMode = viewModel::togglePrivacyMode,
+                        onSetFlagSecure = viewModel::setFlagSecure,
+                        onSetThemeMode = viewModel::setThemeMode,
+                        onSetPin = viewModel::setPin,
+                        onDeleteSenderRule = viewModel::deleteSenderRule
                     )
                 }
             }
         }
     }
 
-    selectedTransaction?.let { tx ->
+    val selectedTxn: TransactionEntity? = selectedTxnId?.let { id ->
+        uiState.allTransactions.firstOrNull { it.id == id }
+    }
+    if (selectedTxn != null) {
         TransactionDetailSheet(
-            transaction = tx,
-            onDismiss = { selectedTransaction = null },
-            onUpdateCategory = { newCategory ->
-                onUpdateCategory(tx.id, newCategory)
-                selectedTransaction = tx.copy(category = newCategory)
+            transaction = selectedTxn,
+            allTransactions = uiState.allTransactions,
+            categories = uiState.categories,
+            existingSplits = uiState.splitsByTxnId[selectedTxn.id].orEmpty(),
+            privacyMode = uiState.preferences.privacyMode,
+            onDismiss = { selectedTxnId = null },
+            onUpdateCategorySingle = { catId ->
+                viewModel.updateCategorySingle(selectedTxn.id, catId)
+            },
+            onAlwaysCategoriseMerchant = { merchant, catId ->
+                viewModel.alwaysCategoriseMerchant(merchant, catId)
+            },
+            onOpenCustomCategoryRule = { txn, catId ->
+                editingCategoryRule = Triple(null, txn.merchant, catId)
+            },
+            onExcludeSingle = { reason ->
+                viewModel.excludeSingle(selectedTxn.id, reason)
+            },
+            onExcludeSimilar = { name, reason, merchantPat, bodyKw, exactAmt ->
+                viewModel.excludeSimilar(name, reason, merchantPat, bodyKw, exactAmt)
+            },
+            onOpenCustomExclusionRule = { txn, reason ->
+                editingExclusionRule = Triple(txn.merchant, "", reason)
+            },
+            onIncludeAgain = {
+                viewModel.includeTransactionsAgain(setOf(selectedTxn.id))
+            },
+            onUpdateDetails = { merchant, amount, time, note, tags ->
+                viewModel.updateTransactionDetails(selectedTxn.id, merchant, amount, time, note, tags)
+            },
+            onSaveSplits = { splits ->
+                viewModel.saveSplits(selectedTxn.id, splits)
             },
             onDelete = {
-                onDeleteTransaction(tx.id)
-                selectedTransaction = null
+                viewModel.deleteTransaction(selectedTxn.id)
+                selectedTxnId = null
             }
         )
     }
-}
 
-@Composable
-private fun SmsPermissionBanner(
-    onGrantPermission: () -> Unit,
-    onLoadSampleData: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Rounded.Sms,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Read Bank Transaction SMS",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+    if (showManualDialog) {
+        ManualTransactionDialog(
+            categories = uiState.categories,
+            accounts = uiState.activeAccounts,
+            onDismiss = { showManualDialog = false },
+            onSave = { merchant, amount, type, catId, accId, time, note, tags ->
+                viewModel.addManualTransaction(merchant, amount, type, catId, accId, time, note, tags)
+                showManualDialog = false
             }
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "Grant SMS access to scan your inbox on-device and group expenses separately for each bank and across all banks. Everything stays offline on your phone.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onGrantPermission) {
-                    Text("Allow SMS Access")
-                }
-                OutlinedButton(onClick = onLoadSampleData) {
-                    Text("Try Sample SMS")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FilterControlsSection(
-    timeframe: TimeframeFilter,
-    typeFilter: TypeFilter,
-    searchQuery: String,
-    onSelectTimeframe: (TimeframeFilter) -> Unit,
-    onSelectTypeFilter: (TypeFilter) -> Unit,
-    onSearchQueryChange: (String) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchQueryChange,
-            placeholder = { Text("Search merchant, bank, or SMS text") },
-            leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { onSearchQueryChange("") }) {
-                        Icon(Icons.Rounded.Close, contentDescription = "Clear search")
-                    }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(14.dp),
-            modifier = Modifier.fillMaxWidth()
         )
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(TypeFilter.entries) { filter ->
-                FilterChip(
-                    selected = typeFilter == filter,
-                    onClick = { onSelectTypeFilter(filter) },
-                    label = { Text(filter.label) }
-                )
-            }
-            items(TimeframeFilter.entries) { filter ->
-                FilterChip(
-                    selected = timeframe == filter,
-                    onClick = { onSelectTimeframe(filter) },
-                    label = { Text(filter.label) }
-                )
-            }
-        }
     }
-}
 
-@Composable
-private fun EmptyTransactionsCard(
-    hasStoredTransactions: Boolean,
-    hasSmsPermission: Boolean,
-    onSyncSms: () -> Unit,
-    onRequestPermission: () -> Unit,
-    onLoadSampleData: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = if (hasStoredTransactions) {
-                    "No transactions match the current filters."
-                } else {
-                    "No bank transactions fetched yet."
-                },
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = if (hasStoredTransactions) {
-                    "Try clearing your search or switching to All Time."
-                } else {
-                    "Sync your SMS inbox to automatically detect expenses for every bank, or load sample SMS to preview."
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (!hasStoredTransactions) {
-                Spacer(modifier = Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = if (hasSmsPermission) onSyncSms else onRequestPermission) {
-                        Text(if (hasSmsPermission) "Scan SMS Inbox" else "Allow SMS")
-                    }
-                    OutlinedButton(onClick = onLoadSampleData) {
-                        Text("Load Samples")
-                    }
-                }
+    editingCategoryRule?.let { (rule, prefillMerchant, prefillCategoryId) ->
+        CategoryRuleEditorDialog(
+            initialRule = rule,
+            prefillMerchant = prefillMerchant,
+            prefillCategoryId = prefillCategoryId,
+            categories = uiState.categories,
+            onDismiss = { editingCategoryRule = null },
+            onSave = { saved ->
+                viewModel.saveCategoryRule(saved)
+                editingCategoryRule = null
             }
-        }
+        )
+    }
+
+    editingExclusionRule?.let { (merchant, keyword, reason) ->
+        ExclusionRuleEditorDialog(
+            initialMerchant = merchant,
+            initialKeyword = keyword,
+            initialReason = reason,
+            onDismiss = { editingExclusionRule = null },
+            onSave = { name, r, m, k, amt ->
+                viewModel.excludeSimilar(name, r, m, k, amt)
+                editingExclusionRule = null
+            }
+        )
+    }
+
+    templateBuilderSms?.let { sms ->
+        TemplateBuilderDialog(
+            initialSender = sms.sender,
+            sampleBody = sms.body,
+            onDismiss = { templateBuilderSms = null },
+            onSave = { template ->
+                viewModel.saveParseTemplateAndReprocess(template)
+                templateBuilderSms = null
+            }
+        )
     }
 }

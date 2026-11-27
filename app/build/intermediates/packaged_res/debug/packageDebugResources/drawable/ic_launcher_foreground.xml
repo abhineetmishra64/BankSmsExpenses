@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- White SMS speech bubble -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,30 C37.5,30 26,38.5 26,50 C26,56.8 30.2,62.6 36.8,66.2 L34.8,75.2 C34.5,76.6 36.0,77.6 37.2,76.8 L46.2,69.6 C48.7,70.0 51.3,70.2 54,70.2 C70.5,70.2 82,61.6 82,50 C82,38.5 70.5,30 54,30 Z" />
+
+    <!-- Rupee symbol (₹) -->
+    <path
+        android:fillColor="#FF0D5C75"
+        android:pathData="M35.5,40.5 L47.5,40.5 L47.5,43 L43.4,43 C44.2,43.8 44.7,44.8 44.8,45.8 L47.5,45.8 L47.5,48.2 L44.7,48.2 C44.3,51.2 41.9,53.1 38.7,53.3 L45.3,60.5 L41.8,60.5 L35.5,53.4 L35.5,51.1 L38.0,51.1 C40.4,51.1 41.8,49.9 42.1,48.2 L35.5,48.2 L35.5,45.8 L42.1,45.8 C41.8,44.2 40.3,43.0 38.0,43.0 L35.5,43.0 Z" />
+
+    <!-- Ascending expense bars -->
+    <path
+        android:fillColor="#FF0D5C75"
+        android:pathData="M54.2,51.5 C55.4,51.5 56.4,52.5 56.4,53.7 L56.4,58.3 C56.4,59.5 55.4,60.5 54.2,60.5 C53.0,60.5 52.0,59.5 52.0,58.3 L52.0,53.7 C52.0,52.5 53.0,51.5 54.2,51.5 Z" />
+    <path
+        android:fillColor="#FF0D5C75"
+        android:pathData="M61.7,45.5 C62.9,45.5 63.9,46.5 63.9,47.7 L63.9,58.3 C63.9,59.5 62.9,60.5 61.7,60.5 C60.5,60.5 59.5,59.5 59.5,58.3 L59.5,47.7 C59.5,46.5 60.5,45.5 61.7,45.5 Z" />
+    <path
+        android:fillColor="#FF0D5C75"
+        android:pathData="M69.2,39.5 C70.4,39.5 71.4,40.5 71.4,41.7 L71.4,58.3 C71.4,59.5 70.4,60.5 69.2,60.5 C68.0,60.5 67.0,59.5 67.0,58.3 L67.0,41.7 C67.0,40.5 68.0,39.5 69.2,39.5 Z" />
+</vector>

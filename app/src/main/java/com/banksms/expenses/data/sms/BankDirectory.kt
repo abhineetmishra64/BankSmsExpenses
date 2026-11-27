@@ -1,5 +1,7 @@
 package com.banksms.expenses.data.sms
 
+import com.banksms.expenses.data.model.AccountType
+import java.util.Locale
 import kotlin.math.abs
 
 data class BankInfo(
@@ -19,7 +21,7 @@ object BankDirectory {
     private val rules = listOf(
         BankRule("HDFC Bank", listOf("HDFCBK", "HDFC"), listOf("hdfc bank", "hdfc card"), 0xFF004C8F),
         BankRule("ICICI Bank", listOf("ICICIB", "ICICI"), listOf("icici bank", "icici"), 0xFFB02A30),
-        BankRule("SBI", listOf("SBIINB", "SBIPSG", "ATMSBI", "SBICRD", "CBSBI", "SBIUPI"), listOf("state bank of india", " sbi ", "sbi a/c", "sbi card"), 0xFF1A56DB),
+        BankRule("SBI", listOf("SBIINB", "SBIPSG", "ATMSBI", "SBICRD", "CBSBI", "SBIUPI", "SBI"), listOf("state bank of india", " sbi ", "sbi a/c", "sbi card"), 0xFF1A56DB),
         BankRule("Axis Bank", listOf("AXISBK", "AXIS"), listOf("axis bank"), 0xFF97144D),
         BankRule("Kotak Bank", listOf("KOTAKB", "KOTAK"), listOf("kotak mahindra", "kotak bank", "kotak"), 0xFFED1C24),
         BankRule("IDFC FIRST Bank", listOf("IDFCFB", "IDFCBK", "IDFC"), listOf("idfc first", "idfc bank"), 0xFF9C1D26),
@@ -57,14 +59,44 @@ object BankDirectory {
     private val bodyBankRegex = Regex("\\b([A-Z][A-Za-z& ]{1,24}\\s+Bank)\\b")
 
     fun normalizeSenderCode(sender: String): String {
-        val trimmed = sender.trim().uppercase()
+        val trimmed = sender.trim().uppercase(Locale.ROOT)
         val match = dltHeaderRegex.matchEntire(trimmed)
         return match?.groupValues?.get(1) ?: trimmed.replace(Regex("[^A-Z0-9]"), "")
     }
 
+    fun isKnownBankSender(sender: String, body: String): Boolean {
+        val normalizedSender = normalizeSenderCode(sender)
+        val lowerBody = " ${body.lowercase(Locale.ROOT)} "
+        return rules.any { rule ->
+            rule.senderKeywords.any { normalizedSender.contains(it) } ||
+                rule.bodyKeywords.any { lowerBody.contains(it) }
+        }
+    }
+
+    fun detectAccountType(body: String, sender: String): AccountType {
+        val lower = body.lowercase(Locale.ROOT)
+        val normSender = normalizeSenderCode(sender)
+        return when {
+            lower.contains("credit card") ||
+                lower.contains("avl lmt") ||
+                lower.contains("available limit") ||
+                lower.contains("credit limit") ||
+                lower.contains("card xx") ||
+                lower.contains("card no") ||
+                lower.contains("bank card") ||
+                normSender.contains("SBICRD") ||
+                normSender.contains("RBLCRD") ||
+                normSender.contains("AMEX") -> AccountType.CREDIT
+            lower.contains("wallet") ||
+                lower.contains("paytm wallet") ||
+                lower.contains("amazon pay balance") -> AccountType.WALLET
+            else -> AccountType.SAVINGS
+        }
+    }
+
     fun resolveBank(sender: String, body: String): BankInfo {
         val normalizedSender = normalizeSenderCode(sender)
-        val lowerBody = " ${body.lowercase()} "
+        val lowerBody = " ${body.lowercase(Locale.ROOT)} "
 
         rules.firstOrNull { rule ->
             rule.senderKeywords.any { normalizedSender.contains(it) }

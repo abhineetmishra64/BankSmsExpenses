@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.banksms.expenses.data.sms.SmsTransactionParserTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-26T17:44:18" hostname="Abhineets-MacBook-Air.local" time="0.042">
+<testsuite name="com.banksms.expenses.data.sms.SmsTransactionParserTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-27T07:55:52" hostname="Abhineets-MacBook-Air.local" time="0.011">
   <properties/>
-  <testcase name="parsesSalaryCredit" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.038"/>
-  <testcase name="parsesIciciDebitEvenWhenBeneficiaryCreditedAppearsLater" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
+  <testcase name="parsesSalaryCredit" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
+  <testcase name="parsesIciciDebitEvenWhenBeneficiaryCreditedAppearsLater" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.0"/>
   <testcase name="parsesHdfcDebitWithBalanceAndMerchant" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
+  <testcase name="parsesAtmAndNachAndNeftChannels" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
   <testcase name="resolvesUnknownBankToSeparateBucket" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
+  <testcase name="respectsIgnoredSenderList" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.0"/>
+  <testcase name="detectsBalanceOnlyAlertsWithoutCreatingTransaction" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
+  <testcase name="appliesCustomParseTemplateForNonStandardSms" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.003"/>
+  <testcase name="parsesIndianLakhFormattingCreditCardLimitAndRefNo" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
   <testcase name="producesSameFingerprintForDuplicateAndDifferentForDistinct" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
+  <testcase name="detectsInternationalUsdTransaction" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.001"/>
+  <testcase name="routesUnparseableKnownBankAlertToUnparsedQueue" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.0"/>
   <testcase name="ignoresOtpAndFailedTransactions" classname="com.banksms.expenses.data.sms.SmsTransactionParserTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
